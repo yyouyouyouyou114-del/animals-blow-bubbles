@@ -98,6 +98,40 @@
     .orientation-hint .text {
       max-width: 300px;
       line-height: 1.5;
+      margin-bottom: 30px;
+    }
+    
+    .force-enter-btn {
+      background: rgba(255, 255, 255, 0.2);
+      border: 2px solid white;
+      color: white;
+      padding: 15px 30px;
+      font-size: 18px;
+      font-weight: bold;
+      border-radius: 25px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      margin-top: 20px;
+    }
+    
+    .force-enter-btn:hover {
+      background: rgba(255, 255, 255, 0.3);
+      transform: scale(1.05);
+    }
+    
+    .debug-info {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.7);
+      color: white;
+      padding: 10px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-family: monospace;
+      max-height: 100px;
+      overflow-y: auto;
     }
     
     /* 竖屏时显示提示 */
@@ -159,6 +193,12 @@
         请将手机横过来<br>
         获得最佳游戏体验
       </div>
+      <button class="force-enter-btn" onclick="forceEnterGame()">
+        强制进入游戏
+      </button>
+      <div class="debug-info" id="debugInfo">
+        正在检测屏幕方向...
+      </div>
     </div>
     
     <!-- 游戏画布 -->
@@ -166,5 +206,56 @@
   </div>
   
     <script type="module" src="/src/main.js"></script>
+  
+  <script>
+    // 强制进入游戏函数
+    function forceEnterGame() {
+      console.log('用户点击强制进入游戏');
+      
+      const canvas = document.getElementById('gameCanvas');
+      const orientationHint = document.querySelector('.orientation-hint');
+      
+      if (canvas && orientationHint) {
+        orientationHint.style.display = 'none';
+        canvas.style.display = 'block';
+        
+        // 触发窗口大小变化事件
+        setTimeout(() => {
+          window.dispatchEvent(new Event('resize'));
+        }, 100);
+        
+        console.log('强制进入游戏成功');
+        
+        // 通知MobileUtils
+        if (window.MobileUtils) {
+          window.MobileUtils.forceEnterGame();
+        }
+      }
+    }
+    
+    // 更新调试信息
+    function updateDebugInfo() {
+      const debugInfo = document.getElementById('debugInfo');
+      if (!debugInfo) return;
+      
+      const info = {
+        windowWidth: window.innerWidth,
+        windowHeight: window.innerHeight,
+        orientation: window.orientation || 'undefined',
+        screenOrientation: screen.orientation ? screen.orientation.angle : 'undefined',
+        userAgent: navigator.userAgent.substring(0, 50) + '...'
+      };
+      
+      debugInfo.innerHTML = Object.entries(info)
+        .map(([key, value]) => `${key}: ${value}`)
+        .join('<br>');
+    }
+    
+    // 定期更新调试信息
+    setInterval(updateDebugInfo, 1000);
+    
+    // 页面加载完成后立即更新
+    document.addEventListener('DOMContentLoaded', updateDebugInfo);
+  </script>
 </body>
 </html>
