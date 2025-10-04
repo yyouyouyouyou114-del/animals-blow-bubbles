@@ -46,52 +46,86 @@ export class MobileUtils {
   static setupOrientationHandling() {
     // 监听屏幕方向变化
     if (screen.orientation) {
-      screen.orientation.addEventListener('change', this.handleOrientationChange);
+      screen.orientation.addEventListener('change', () => this.handleOrientationChange());
     } else {
       // 兼容旧版浏览器
-      window.addEventListener('orientationchange', this.handleOrientationChange);
+      window.addEventListener('orientationchange', () => this.handleOrientationChange());
     }
+    
+    // 监听窗口大小变化（备用方案）
+    window.addEventListener('resize', () => {
+      setTimeout(() => this.handleOrientationChange(), 100);
+    });
     
     // 初始检查
     this.handleOrientationChange();
+    
+    // 添加调试按钮（开发模式）
+    this.addDebugButton();
   }
 
   /**
    * 处理屏幕方向变化
    */
   static handleOrientationChange() {
-    const canvas = document.getElementById('gameCanvas');
-    const orientationHint = document.querySelector('.orientation-hint');
-    
-    if (!canvas || !orientationHint) return;
-    
-    // 检测是否为移动设备
-    const isMobile = this.isMobileDevice();
-    
-    if (isMobile) {
-      const isPortrait = window.innerHeight > window.innerWidth;
+    // 延迟执行，等待屏幕方向变化完成
+    setTimeout(() => {
+      const canvas = document.getElementById('gameCanvas');
+      const orientationHint = document.querySelector('.orientation-hint');
       
-      if (isPortrait) {
-        // 竖屏：显示提示，隐藏游戏
-        orientationHint.style.display = 'flex';
-        canvas.style.display = 'none';
-        console.log('检测到竖屏模式，显示横屏提示');
+      if (!canvas || !orientationHint) return;
+      
+      // 检测是否为移动设备
+      const isMobile = this.isMobileDevice();
+      
+      if (isMobile) {
+        // 更准确的方向检测
+        let isPortrait = false;
+        
+        // 方法1：使用screen.orientation API
+        if (screen.orientation) {
+          const angle = screen.orientation.angle;
+          isPortrait = (angle === 0 || angle === 180);
+        } 
+        // 方法2：使用window.orientation（兼容性更好）
+        else if (typeof window.orientation !== 'undefined') {
+          isPortrait = (window.orientation === 0 || window.orientation === 180);
+        }
+        // 方法3：使用窗口尺寸（最后的备选方案）
+        else {
+          isPortrait = window.innerHeight > window.innerWidth;
+        }
+        
+        console.log('屏幕方向检测:', {
+          isPortrait,
+          windowWidth: window.innerWidth,
+          windowHeight: window.innerHeight,
+          orientation: window.orientation,
+          screenOrientation: screen.orientation ? screen.orientation.angle : 'undefined'
+        });
+        
+        if (isPortrait) {
+          // 竖屏：显示提示，隐藏游戏
+          orientationHint.style.display = 'flex';
+          canvas.style.display = 'none';
+          console.log('检测到竖屏模式，显示横屏提示');
+        } else {
+          // 横屏：隐藏提示，显示游戏
+          orientationHint.style.display = 'none';
+          canvas.style.display = 'block';
+          console.log('检测到横屏模式，显示游戏');
+          
+          // 触发窗口大小变化事件
+          setTimeout(() => {
+            window.dispatchEvent(new Event('resize'));
+          }, 200);
+        }
       } else {
-        // 横屏：隐藏提示，显示游戏
+        // 桌面设备：始终显示游戏
         orientationHint.style.display = 'none';
         canvas.style.display = 'block';
-        console.log('检测到横屏模式，显示游戏');
-        
-        // 触发窗口大小变化事件
-        setTimeout(() => {
-          window.dispatchEvent(new Event('resize'));
-        }, 100);
       }
-    } else {
-      // 桌面设备：始终显示游戏
-      orientationHint.style.display = 'none';
-      canvas.style.display = 'block';
-    }
+    }, 300); // 延迟300ms等待方向变化完成
   }
 
   /**
@@ -355,6 +389,66 @@ export class MobileUtils {
     } catch (error) {
       console.warn('获取设备信息失败:', error);
       return { error: error.message };
+    }
+  }
+
+  /**
+   * 添加调试按钮（开发模式）
+   */
+  static addDebugButton() {
+    // 只在移动设备上添加调试按钮
+    if (!this.isMobileDevice()) return;
+    
+    // 创建调试按钮
+    const debugBtn = document.createElement('button');
+    debugBtn.innerHTML = '🔄';
+    debugBtn.style.cssText = `
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      z-index: 10000;
+      background: rgba(0,0,0,0.7);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      font-size: 20px;
+      cursor: pointer;
+    `;
+    
+    debugBtn.onclick = () => {
+      console.log('手动触发方向检测');
+      this.handleOrientationChange();
+    };
+    
+    document.body.appendChild(debugBtn);
+    
+    // 5秒后自动隐藏
+    setTimeout(() => {
+      if (debugBtn.parentNode) {
+        debugBtn.parentNode.removeChild(debugBtn);
+      }
+    }, 5000);
+  }
+
+  /**
+   * 强制进入游戏（紧急方案）
+   */
+  static forceEnterGame() {
+    const canvas = document.getElementById('gameCanvas');
+    const orientationHint = document.querySelector('.orientation-hint');
+    
+    if (canvas && orientationHint) {
+      orientationHint.style.display = 'none';
+      canvas.style.display = 'block';
+      
+      // 触发窗口大小变化事件
+      setTimeout(() => {
+        window.dispatchEvent(new Event('resize'));
+      }, 100);
+      
+      console.log('强制进入游戏模式');
     }
   }
 }
