@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试页面 - 宝宝泡泡乐园</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        
+        canvas {
+            border: 2px solid #4CAF50;
+            background: #87CEEB;
+            display: block;
+            max-width: 100%;
+            max-height: 100vh;
+        }
+        
+        .info {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            color: white;
+            font-size: 14px;
+            background: rgba(0,0,0,0.5);
+            padding: 10px;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="info">
+        <div>测试页面 - 如果看到这个说明页面能正常加载</div>
+        <div>点击画布任意位置创建泡泡</div>
+    </div>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
+    <script>
+        console.log('测试页面开始加载...');
+        
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // 简单的泡泡数组
+        let bubbles = [];
+        
+        // 简单的渲染循环
+        function render() {
+            // 清空画布
+            ctx.fillStyle = '#87CEEB';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // 绘制标题
+            ctx.fillStyle = '#333';
+            ctx.font = 'bold 32px Arial';
+            ctx.textAlign = 'center';
+            ctx.fillText('宝宝泡泡乐园 - 测试版', canvas.width / 2, 100);
+            
+            // 绘制说明
+            ctx.font = '18px Arial';
+            ctx.fillText('点击任意位置创建泡泡', canvas.width / 2, 150);
+            
+            // 更新和绘制泡泡
+            for (let i = bubbles.length - 1; i >= 0; i--) {
+                const bubble = bubbles[i];
+                
+                // 更新泡泡位置
+                bubble.y -= bubble.speed;
+                bubble.x += Math.sin(bubble.y * 0.01) * 0.5;
+                
+                // 绘制泡泡
+                const gradient = ctx.createRadialGradient(
+                    bubble.x - bubble.size * 0.3, 
+                    bubble.y - bubble.size * 0.3, 
+                    0,
+                    bubble.x, 
+                    bubble.y, 
+                    bubble.size
+                );
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+                gradient.addColorStop(0.7, 'rgba(173, 216, 230, 0.4)');
+                gradient.addColorStop(1, 'rgba(100, 149, 237, 0.1)');
+                
+                ctx.fillStyle = gradient;
+                ctx.beginPath();
+                ctx.arc(bubble.x, bubble.y, bubble.size, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 泡泡高光
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                ctx.beginPath();
+                ctx.arc(bubble.x - bubble.size * 0.3, bubble.y - bubble.size * 0.3, bubble.size * 0.3, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // 移除超出屏幕的泡泡
+                if (bubble.y < -bubble.size) {
+                    bubbles.splice(i, 1);
+                }
+            }
+            
+            // 显示泡泡数量
+            ctx.fillStyle = '#333';
+            ctx.font = '16px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText(`当前泡泡数量: ${bubbles.length}`, 20, canvas.height - 20);
+            
+            requestAnimationFrame(render);
+        }
+        
+        // 点击事件 - 创建泡泡
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            // 创建新泡泡
+            bubbles.push({
+                x: x,
+                y: y,
+                size: 15 + Math.random() * 25,
+                speed: 1 + Math.random() * 2
+            });
+            
+            console.log(`创建泡泡在位置: (${x}, ${y}), 当前泡泡总数: ${bubbles.length}`);
+        });
+        
+        // 触摸事件支持
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+            
+            bubbles.push({
+                x: x,
+                y: y,
+                size: 15 + Math.random() * 25,
+                speed: 1 + Math.random() * 2
+            });
+            
+            console.log(`触摸创建泡泡在位置: (${x}, ${y})`);
+        });
+        
+        console.log('测试页面初始化完成，开始渲染...');
+        render();
+    </script>
+</body>
+</html>

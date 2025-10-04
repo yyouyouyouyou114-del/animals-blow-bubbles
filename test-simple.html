@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试页面</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #87CEEB 0%, #98FB98 100%);
+            font-family: Arial, sans-serif;
+        }
+        #gameCanvas {
+            border: 2px solid #333;
+            background: white;
+            display: block;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>游戏测试页面</h1>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+    
+    <script type="module">
+        console.log('🔍 开始测试...');
+        
+        try {
+            // 测试基本的Canvas功能
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 绘制测试内容
+            ctx.fillStyle = '#FF8C42';
+            ctx.fillRect(50, 50, 100, 100);
+            ctx.fillStyle = '#333';
+            ctx.font = '24px Arial';
+            ctx.fillText('Canvas 工作正常！', 200, 100);
+            
+            console.log('✅ Canvas 基础功能正常');
+            
+            // 测试模块导入
+            const { Game } = await import('./src/core/Game.js');
+            console.log('✅ Game 类导入成功');
+            
+            // 尝试创建游戏实例
+            const game = new Game(canvas);
+            console.log('✅ Game 实例创建成功');
+            
+            // 尝试初始化
+            await game.init();
+            console.log('✅ Game 初始化成功');
+            
+            // 启动游戏
+            game.start();
+            console.log('✅ 游戏启动成功');
+            
+        } catch (error) {
+            console.error('❌ 测试失败:', error);
+            document.body.innerHTML += `<div style="color: red; margin: 20px; padding: 20px; border: 2px solid red;">
+                <h2>错误信息：</h2>
+                <pre>${error.stack || error.message}</pre>
+            </div>`;
+        }
+    </script>
+</body>
+</html>

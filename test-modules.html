@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>模块测试</title>
+    <style>
+        body { font-family: monospace; padding: 20px; background: #f0f0f0; }
+        .success { color: green; }
+        .error { color: red; }
+        .log { margin: 5px 0; padding: 5px; background: white; }
+    </style>
+</head>
+<body>
+    <h1>模块导入测试</h1>
+    <div id="log"></div>
+    
+    <script type="module">
+        const log = (msg, isError = false) => {
+            const div = document.createElement('div');
+            div.className = `log ${isError ? 'error' : 'success'}`;
+            div.textContent = msg;
+            document.getElementById('log').appendChild(div);
+            console.log(msg);
+        };
+        
+        async function testImports() {
+            try {
+                log('✅ 1. 开始测试模块导入...');
+                
+                // 测试 BaseScene
+                log('   导入 BaseScene...');
+                const { BaseScene } = await import('./src/scenes/BaseScene.js');
+                log('✅ 2. BaseScene 导入成功');
+                
+                // 测试 GrasslandScene
+                log('   导入 GrasslandScene...');
+                const { GrasslandScene } = await import('./src/scenes/GrasslandScene.js');
+                log('✅ 3. GrasslandScene 导入成功');
+                
+                // 测试 OceanScene
+                log('   导入 OceanScene...');
+                const { OceanScene } = await import('./src/scenes/OceanScene.js');
+                log('✅ 4. OceanScene 导入成功');
+                
+                // 测试 NightScene
+                log('   导入 NightScene...');
+                const { NightScene } = await import('./src/scenes/NightScene.js');
+                log('✅ 5. NightScene 导入成功');
+                
+                // 测试 SceneManager
+                log('   导入 SceneManager...');
+                const { SceneManager } = await import('./src/core/SceneManager.js');
+                log('✅ 6. SceneManager 导入成功');
+                
+                // 测试 InputManager
+                log('   导入 InputManager...');
+                const { InputManager } = await import('./src/core/InputManager.js');
+                log('✅ 7. InputManager 导入成功');
+                
+                // 测试 AudioManager
+                log('   导入 AudioManager...');
+                const { AudioManager } = await import('./src/audio/AudioManager.js');
+                log('✅ 8. AudioManager 导入成功');
+                
+                // 测试 Game
+                log('   导入 Game...');
+                const { Game } = await import('./src/core/Game.js');
+                log('✅ 9. Game 导入成功');
+                
+                // 测试实例化
+                log('   创建场景实例...');
+                const grassland = new GrasslandScene();
+                log(`✅ 10. GrasslandScene 实例化成功 (${grassland.name})`);
+                
+                const ocean = new OceanScene();
+                log(`✅ 11. OceanScene 实例化成功 (${ocean.name})`);
+                
+                const night = new NightScene();
+                log(`✅ 12. NightScene 实例化成功 (${night.name})`);
+                
+                log('');
+                log('🎉 所有测试通过！模块系统正常工作。');
+                
+            } catch (error) {
+                log(`❌ 错误: ${error.message}`, true);
+                log(`❌ 堆栈: ${error.stack}`, true);
+            }
+        }
+        
+        testImports();
+    </script>
+</body>
+</html>
